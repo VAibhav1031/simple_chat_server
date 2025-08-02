@@ -86,7 +86,7 @@ def send_msg(sock, msg):
         pass
 
 
-def auth_setup():
+def auth_setup(sock):
     print("1. Enter (Old User 🧓)")
     print("2. Register New User 👶 ")
 
@@ -146,63 +146,61 @@ def receive_messages(sock):
             break
 
 
-# the socket is setup for the TCP protocol with IPV4
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
+def setup_socket():
+    # the socket is setup for the TCP protocol with IPV4
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
 
-try:
-    sock.connect((server_ip, 5000))
-except Exception as e:
-    print(f"[!] Could not connect to server: {e}")
-    sys.exit(1)
+    try:
+        sock.connect((server_ip, 5000))
+    except Exception as e:
+        print(f"[!] Could not connect to server: {e}")
+        sys.exit(1)
 
-# we have to go with the ask to the user
-# new use
-
-####
-auth_setup()
-####
+    return sock
 
 
-recv_thread = threading.Thread(target=receive_messages, args=(sock,))
-recv_thread.start()
+def start_recv_thread(sock):
+    recv_thread = threading.Thread(target=receive_messages, args=(sock,))
+    # recv_thread.daemon = True
+    recv_thread.start()
+    return recv_thread
 
 
-try:
-    while not exit_flag.is_set():
-        msg = input(f"\033[38;5;51m{user_name_holder[0]}\033[0m :")
-        if exit_flag.is_set():
+def handle_input(sock):
+    try:
+        while not exit_flag.is_set():
+            msg = input(f"\033[38;5;51m{user_name_holder[0]}\033[0m :")
+            if exit_flag.is_set():
+                break
+            elif msg.strip():
+                send_msg(sock, f"{msg}")
+
+    except (KeyboardInterrupt, EOFError):
+        print("\n[!] Exiting chat...")
+
+
+def main():
+    while True:
+        client_sock = setup_socket()
+        auth_setup(client_sock)
+        recv_thread = start_recv_thread(client_sock)
+
+        while not exit_flag.is_set():
+            handle_input(client_sock)
+
+        recv_thread.join()
+        client_sock.close()
+
+        if not auth_needed_flag.is_set():
             break
-        elif msg.strip():
-            send_msg(sock, f"{msg}")
+        else:
+            auth_needed_flag.clear()
+            exit_flag.clear()
 
 
-except (KeyboardInterrupt, EOFError):
-    print("\n[!] Exiting chat...")
-
-finally:
-    exit_flag.set()
-    sock.close()
-    recv_thread.join()
-    if auth_needed_flag.is_set():
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
-
-        try:
-            sock.connect((server_ip, 5000))
-        except Exception as e:
-            print(f"[!] Could not connect to server: {e}")
-            sys.exit(1)
-
-        exit_flag.clear()
-        auth_needed_flag.clear()
-        auth_setup()
-
-        recv_thread = threading.Thread(target=receive_messages, args=(sock,))
-        recv_thread.start()
-    # sys.exit(0)
-
-
+if __name__ == "__main__":
+    main()
 # current we are going with the exit to exit the chat not something like
 # /quit /pvt (like a direct dm to a person no to whole group oka )
 
