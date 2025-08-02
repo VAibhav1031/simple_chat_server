@@ -52,8 +52,7 @@ import time
 
 # #  First i went for the ASCII using the pyfiglet, then i thought about the
 # # SOme thing better, you must all go with this site "http://patorjk.com/software/taag/"
-print("""
-
+banner_textttu = """
 
              ██████  ██   ██  █████  ████████     ███████ ███████ ██████  ██    ██ ███████ ██████  
             ██       ██   ██ ██   ██    ██        ██      ██      ██   ██ ██    ██ ██      ██   ██ 
@@ -68,9 +67,9 @@ print("""
                by  -->              ▛▖▌█▌▛▘▛▘▛▌ ▛▖▞▌▌▌▛▌▛▘█▌▛▘
                                     ▌▝▌▙▖▙▖▌ ▙▌ ▌▝ ▌▛▌▌▌▙▖▙▖▌ 
             ---------------------------------------------------------------------------------------                                      
+    """
 
-    """)
-
+print("\033[38;5;197m" + banner_textttu + "\033[0m")
 
 exit_flag = threading.Event()
 auth_needed_flag = threading.Event()
@@ -87,15 +86,15 @@ def send_msg(sock, msg):
 
 
 def auth_setup(sock):
-    print("1. Enter (Old User 🧓)")
-    print("2. Register New User 👶 ")
+    print("\033[38;5;230m 1. Register (New User 👶) \033[0m")
+    print("\033[38;5;230m 2. Enter (Old User 🧓) \033[0m")
 
-    option_ = input("\nEnter the option : ")
+    option_ = input("\n\033[38;5;205m Enter the option(1 or 2) : \033[0m")
     user_name = None
     password = None
     while not user_name or not password:
-        user_name = input("Enter your username: ")
-        password = input("Enter the password: ")
+        user_name = input("\033[38;5;230m Enter your username: \033[0m ")
+        password = input("\033[38;5;230m Enter the password: \033[0m ")
 
     user_name_holder[0] = user_name
 
@@ -107,8 +106,18 @@ def auth_setup(sock):
         msg = f"{user_name}::{password}::{AUTH_REGISTER}"
         send_msg(sock, msg)
 
+    time.sleep(1.5)
+    print("\n\n\033[38;5;226m [-]Connecting ....\033[0m")
+    time.sleep(0.8)
+    print("\n\033[38;5;226m [-]Wait bro ~~~~!!!!~~~ \033[0m")
+    time.sleep(1.2)
+    print("\n\033[38;5;226m ⏰...\033[0m")
     time.sleep(1)
-    print("""[✓] Connected to server[!]""")
+    print("""\n\033[38;5;226m [✓] Connected to server[!]\033[0m\n\n""")
+    print(
+        """\n\033[38;5;226m---------------------------------------------------------\033[0m\n"""
+    )
+    time.sleep(1)
 
 
 def receive_messages(sock):

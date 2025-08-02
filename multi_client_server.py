@@ -46,6 +46,10 @@ def command_parser(command_data, client_sock):
         client_sock.send(b"[!] User not found.\n")
 
     elif command == "/who":
+        if len(clients) == 1:
+            client_sock.send("No One is connected Yet")
+            return
+
         for client in clients:
             if client != client_sock:
                 client_sock.send(clients[client]["name"].encode())
@@ -60,6 +64,14 @@ def command_parser(command_data, client_sock):
 
         client_sock.send(f"__new_username__ {args[0]}".encode())
 
+    elif command == "/whoami":
+        client_sock.send(
+            f"      User address(ip_addr, port_number) :: {
+                clients[client_sock]['addr']
+            }\n".encode()
+        )
+        client_sock.send(f"      Username :: {
+                         clients[client_sock]['name']}".encode())
     elif command == "/exit":
         client_sock.send(b"__EXIT__")
 
@@ -74,7 +86,7 @@ def command_parser(command_data, client_sock):
         client_sock.send(help_msg.encode())
 
     else:
-        client_sock.send(f"Unkown command {command}")
+        client_sock.send(f"💣 Unkown command {command}".encode())
 
 
 def read_client(conn):
@@ -87,7 +99,7 @@ def read_client(conn):
             if not clients[conn]["auth"]:
                 username, password, option = data.decode().split("::")
 
-                if option == "2":
+                if option == "1":
                     if register_user(username, password):
                         conn.send(b"[+] Registration successful.")
                         clients[conn]["name"] = username
@@ -152,7 +164,7 @@ server.setblocking(False)
 
 sel.register(server, selectors.EVENT_READ, accept_connection)
 
-print("Chat Server is running")
+print("Chat Server is running..... ")
 
 # Event loop
 #
