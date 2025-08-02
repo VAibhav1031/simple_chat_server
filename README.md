@@ -7,8 +7,10 @@
 -  It is a fun , side project ,  Making a chat server requires a lot of  aspect so that it work and scale better, so it is very time consuming also 
 -  Will do my best and add more feature which may be better to use 
 
+---
 
-
-
-
-
+## what to do :
+- Optimizing the flow, removing each and every bug .
+- Creating Test of it , on various level (so that it could be a simple good chat server)
+- Adding Room feature in it
+- Adding Logging (for debug and crasg report)
