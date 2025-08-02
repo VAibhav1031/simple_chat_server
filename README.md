@@ -13,4 +13,4 @@
 - Optimizing the flow, removing each and every bug .
 - Creating Test of it , on various level (so that it could be a simple good chat server)
 - Adding Room feature in it
-- Adding Logging (for debug and crasg report)
+- Adding Logging (for debug and crash report)
