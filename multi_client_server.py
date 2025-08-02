@@ -80,13 +80,13 @@ def command_parser(command_data, client_sock):
 def read_client(conn):
     try:
         data = conn.recv(1024)
-        username, password, option = data.decode().split("::")
-
         if data:
             # first data will be of authentication or Registration
             # this  will only when  there is the first time Registration
-            #
+
             if not clients[conn]["auth"]:
+                username, password, option = data.decode().split("::")
+
                 if option == "2":
                     if register_user(username, password):
                         conn.send(b"[+] Registration successful.")

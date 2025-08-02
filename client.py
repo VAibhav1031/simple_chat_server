@@ -1,7 +1,7 @@
 import socket
 import threading
 import sys
-
+import time
 # i will explain you  what is  the  threading.Event()
 # it is special type of  bool,  with lot of attributes
 
@@ -73,6 +73,7 @@ print("""
 
 
 exit_flag = threading.Event()
+auth_needed_flag = threading.Event()
 user_name_holder = [None]
 AUTH_REGISTER = "2"
 AUTH_LOGIN = "1"
@@ -88,10 +89,11 @@ def send_msg(sock, msg):
 def auth_setup():
     print("1. Enter (Old User 🧓)")
     print("2. Register New User 👶 ")
-    option_ = input("Enter the option : ")
+
+    option_ = input("\nEnter the option : ")
     user_name = None
     password = None
-    while not user_name and not password:
+    while not user_name or not password:
         user_name = input("Enter your username: ")
         password = input("Enter the password: ")
 
@@ -104,6 +106,9 @@ def auth_setup():
     else:
         msg = f"{user_name}::{password}::{AUTH_REGISTER}"
         send_msg(sock, msg)
+
+    time.sleep(1)
+    print("""[✓] Connected to server[!]""")
 
 
 def receive_messages(sock):
@@ -125,12 +130,11 @@ def receive_messages(sock):
                 sys.stdout.write("\r" + " " * 100 + "\r")
                 exit_flag.set()
                 break
-
             sys.stdout.write("\r" + " " * 100 + "\r")
             print(f"\033[38;5;46m{data.decode()}\033[0m")
-
             if msssg.startswith("[-]"):
-                auth_setup()
+                auth_needed_flag.set()
+                exit_flag.set()
                 break
 
             sys.stdout.write(f"\033[38;5;51m{user_name_holder[0]}\033[0m :")
@@ -180,7 +184,23 @@ finally:
     exit_flag.set()
     sock.close()
     recv_thread.join()
-    sys.exit(0)
+    if auth_needed_flag.is_set():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
+
+        try:
+            sock.connect((server_ip, 5000))
+        except Exception as e:
+            print(f"[!] Could not connect to server: {e}")
+            sys.exit(1)
+
+        exit_flag.clear()
+        auth_needed_flag.clear()
+        auth_setup()
+
+        recv_thread = threading.Thread(target=receive_messages, args=(sock,))
+        recv_thread.start()
+    # sys.exit(0)
 
 
 # current we are going with the exit to exit the chat not something like
@@ -193,9 +213,4 @@ finally:
 # but at same moment when the data is came from the other connected people
 # So to make it more better looking the current line is cleared (Whcih is input promt ), so the text of that is cleared and
 # the message is printed,  so to make the continous flow , we use to print the cleared text during the printing of the message
-# that is only one thing nothing else
-# that is only one thing nothing else
-# that is only one thing nothing else
-# that is only one thing nothing else
-# that is only one thing nothing else
 # that is only one thing nothing else
