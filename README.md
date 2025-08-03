@@ -1,4 +1,5 @@
 # SIMPLE CHAT SERVER
+![Screenshot of my project's main screen](repo_essentials/show.png)
 ---
 -  It is a simple chat server, using Sockets 
 -  Pretty good and clean , can be connect through internet  or locally 
@@ -10,6 +11,7 @@
 ---
 
 ## what to do :
+- YEAH I KNOW, There is lot of bugs (I am removing it...) 
 - Optimizing the flow, removing each and every bug .
 - Creating Test of it , on various level (so that it could be a simple good chat server)
 - Adding Room feature in it
