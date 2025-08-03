@@ -134,11 +134,13 @@ def receive_messages(sock):
             msssg = data.decode()
             if msssg.startswith("Pong"):
                 end_time = time.time()
+                sys.stdout.write("\r" + " " * 100 + "\r")
+                print(f"\033[38;5;83m{msssg}\033[0m")
                 print(
-                    f"\033[38;5;83m[Server]: 🏓PONG received ({
-                        (end_time - start_time) * 100
-                    }ms)!\033[0m"
+                    f"\033[38;5;83m[Server RTT]: {((end_time - start_time) * 100):.2f} ms\033[0m"
                 )
+
+                continue
 
             if msssg.startswith("__new_username__"):
                 user_name_holder[0] = data.decode().split()[1]
@@ -193,7 +195,7 @@ def handle_input(sock):
             if msg.strip().lower() == "/ping":
                 global start_time
                 start_time = time.time()
-                send_msg(sock, f"{msg}")
+
             if exit_flag.is_set():
                 break
             elif msg.strip():
@@ -201,6 +203,7 @@ def handle_input(sock):
 
     except (KeyboardInterrupt, EOFError):
         print("\n[!] Exiting chat...")
+        exit_flag.set()
 
 
 def main():

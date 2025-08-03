@@ -95,7 +95,7 @@ def command_parser(command_data, client_sock):
         "/rename": lambda: handle_rename(args, client_sock),
         "/whoami": lambda: handle_whoami(client_sock),
         "/exit": lambda: client_sock.send(b"__EXIT__"),
-        "/ping": lambda: client_sock.send("Pong 🏓".encode()),
+        "/ping": lambda: client_sock.send("Pong 🏓 Recieved!!".encode()),
         "/help": lambda: handle_help(client_sock),
     }
 
