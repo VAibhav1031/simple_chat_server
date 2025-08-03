@@ -15,78 +15,95 @@ def accept_connection(sock):
     sel.register(conn, selectors.EVENT_READ, read_client)
 
 
+# ---------------------------COMMAND-PARSER-ESSENTIALS----------------------------
+def handle_pvt(client_sock, args):
+    if len(args) < 2:
+        client_sock.send(b"Try Again: /pvt [name] [msg]")
+        return
+
+    reciepent_name = args[0]
+    message = " ".join(args[1:])
+
+    if reciepent_name == clients[client_sock]["name"]:
+        client_sock.send("ERROR!!: You cant sent private message To yourself".encode())
+        return
+
+    for client in clients:
+        if clients[client]["name"] == reciepent_name:
+            sender = clients[client_sock].get("name")
+            formatted_msg = f"[Private] {sender.title()}: {message}".encode()
+            client.send(formatted_msg)
+            client_sock.send(b"[Private message sent]\n")
+            return
+
+    client_sock.send(b"[!] User not found.\n")
+
+
+def handle_who(client_sock):
+    if len(clients) == 1:
+        client_sock.send(b"No One is connected Yet")
+        return
+
+    for client in clients:
+        if client != client_sock:
+            client_sock.send(clients[client]["name"].encode())
+
+
+def handle_whoami(client_sock):
+    info = clients[client_sock]
+    msg = f"User address :: {info['addr']}\nUsername :: {info['name']}"
+    client_sock.send(msg.encode())
+
+
+def handle_rename(client_sock, args):
+    #
+    if len(args) < 1:
+        client_sock.send(b"Try Again: /rename <new_username> ")
+        return
+
+    clients[client_sock]["name"] = args[0]
+
+    client_sock.send(f"__new_username__ {args[0]}".encode())
+
+
+def handle_help(client_sock):
+    help_msg = """
+    Available commands:
+    /who              - List connected users
+    /pvt <user> <msg> - Send private message
+    /rename <new>     - Change your username
+    /whoami           - About yourself
+    /exit             - Leave the chat
+    /ping             - ping the server 
+    """
+    client_sock.send(help_msg.encode())
+
+
+# ------------------------------------------------XXXXXX----------------------------------
+
+
 def command_parser(command_data, client_sock):
-    token = command_data.split()
-    command = token[0].lower()
-    args = token[1:]
+    token = command_data.strip().split()
+    if not token:
+        return
 
-    if command == "/pvt":
-        if len(args) < 2:
-            client_sock.send(b"Try Again: /pvt [name] [msg]")
-            return
+    command, args = token[0].lower(), token[1:]
 
-        reciepent_name = args[0]
-        message = " ".join(args[1:])
+    command_map = {
+        "/pvt": lambda: handle_pvt(args, client_sock),
+        "/who": lambda: handle_who(client_sock),
+        "/rename": lambda: handle_rename(args, client_sock),
+        "/whoami": lambda: handle_whoami(client_sock),
+        "/exit": lambda: client_sock.send(b"__EXIT__"),
+        "/ping": lambda: client_sock.send("Pong 🏓".encode()),
+        "/help": lambda: handle_help(client_sock),
+    }
 
-        if reciepent_name == clients[client_sock]["name"]:
-            client_sock.send(
-                "ERROR!!: You cant sent private message To yourself".encode()
-            )
-            return
-
-        for client in clients:
-            if clients[client]["name"] == reciepent_name:
-                sender = clients[client_sock].get("name")
-                formatted_msg = f"[Private] {
-                    sender.title()}: {message}".encode()
-                client.send(formatted_msg)
-                client_sock.send(b"[Private message sent]\n")
-                return
-
-        client_sock.send(b"[!] User not found.\n")
-
-    elif command == "/who":
-        if len(clients) == 1:
-            client_sock.send("No One is connected Yet")
-            return
-
-        for client in clients:
-            if client != client_sock:
-                client_sock.send(clients[client]["name"].encode())
-
-    elif command == "/rename":
-        #
-        if len(args) < 1:
-            client_sock.send(b"Try Again: /rename <new_username> ")
-            return
-
-        clients[client_sock]["name"] = args[0]
-
-        client_sock.send(f"__new_username__ {args[0]}".encode())
-
-    elif command == "/whoami":
-        client_sock.send(
-            f"      User address(ip_addr, port_number) :: {
-                clients[client_sock]['addr']
-            }\n".encode()
-        )
-        client_sock.send(f"      Username :: {
-                         clients[client_sock]['name']}".encode())
-    elif command == "/exit":
-        client_sock.send(b"__EXIT__")
-
-    elif command == "/help":
-        help_msg = """
-        Available commands:
-        /who              - List connected users
-        /pvt <user> <msg> - Send private message
-        /rename <new>     - Change your username
-        /exit             - Leave the chat
-        """
-        client_sock.send(help_msg.encode())
-
+    handler = command_map.get(command)
+    if handler:
+        handler()
     else:
-        client_sock.send(f"💣 Unkown command {command}".encode())
+        client_sock.send(f"❓Unkown command : {command}".encode())
 
 
 def read_client(conn):
@@ -133,8 +150,7 @@ def read_client(conn):
                         try:
                             sender = clients[conn].get("name")
                             # this ANSI color code , helps in making nice colored username, i just get to know from my friend
-                            formatted_msg = f"{sender}: {
-                                data.decode()}".encode()
+                            formatted_msg = f"{sender}: {data.decode()}".encode()
                             client.send(formatted_msg)
 
                         except Exception as e:
@@ -156,11 +172,17 @@ def read_client(conn):
 
 # Setup
 server = socket.socket()
-# 0.0.0.0 is the universal connector , means you can connect to this server
+
+###  0.0.0.0 is the universal connector , means you can connect to this server
 server.bind(("0.0.0.0", 5000))
-# using any means of connection either localhost or through the ip address and all
-server.listen()
-server.setblocking(False)
+### using any means of connection either localhost or through the ip address and all
+
+
+server.listen()  # You are server is nowwww readddy broooo
+server.setblocking(
+    False
+)  # since you are using chat server we may get connection or send recv thing at nearly same time , to stop
+# the block  period from the send recv and other utilities we block---> false
 
 sel.register(server, selectors.EVENT_READ, accept_connection)
 
