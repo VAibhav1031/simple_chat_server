@@ -12,7 +12,16 @@
 
 ## what to do :
 - YEAH I KNOW, There is lot of bugs (I am removing it...) 
-- Optimizing the flow, removing each and every bug .
-- Creating Test of it , on various level (so that it could be a simple good chat server)
-- Adding Room feature in it(Added but still flow is not upto the mark)
-- Adding Logging (for debug and crash report)
+
+  ### Every update TO-DO:
+  - Optimizing the flow, removing each and every bug .
+  - Creating Test of it , on various level (so that it could be a simple good chat server)
+
+  ### Current feature and required:
+  - Adding Room Mode(Pub/pvt) and passwd entry exit options
+  - Logging(will make custom log structure) for server crash and  client wrong behaviour
+  - Encrypting  mssg floww (SSL, knew to me...)
+  - SMOOOTH FLOOWW..
+ 
+---
+:))
