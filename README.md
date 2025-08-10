@@ -14,5 +14,5 @@
 - YEAH I KNOW, There is lot of bugs (I am removing it...) 
 - Optimizing the flow, removing each and every bug .
 - Creating Test of it , on various level (so that it could be a simple good chat server)
-- Adding Room feature in it
+- Adding Room feature in it(Added but still flow is not upto the mark)
 - Adding Logging (for debug and crash report)
