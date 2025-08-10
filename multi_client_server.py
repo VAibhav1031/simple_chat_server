@@ -96,9 +96,10 @@ def handle_help_room(client_sock):
     /room_create <name> - Create a new room
     /room_join <name>   - Join an existing room
     /leave_current_room - Leave the room you are currently in (stay in room mode)
+    /rooms              - show all Available rooms
     /help               - Show this help menu
 
-    Notes:
+    Notes ->
     - While in room mode, your messages go only to members of your current room.
     - If you are in room mode but not in any room, you must /room_join or /room_create before sending messages.
 """
@@ -122,10 +123,19 @@ def join_room(client_sock, room_name):
         client_sock.send(b"[!] Room does not exist.")
         return
 
-    leave_current_room(client_sock)
+    if clients[client_sock]["room"]:
+        leave_current_room(client_sock)
     rooms[room_name].add(client_sock)
     clients[client_sock]["room"] = room_name
     client_sock.send(f"[+] Joined room '{room_name}'.".encode())
+    sender = clients[client_sock]["name"]
+    for member in rooms[room_name]:
+        if (
+            member != client_sock
+            and clients[member]["in_room_mode"]
+            and clients[member]["room"] == room_name
+        ):
+            member.send(f"[Info] '{sender}' entered room '{room_name}'.".encode())
 
 
 def leave_current_room(client_sock):
@@ -134,6 +144,23 @@ def leave_current_room(client_sock):
         rooms[current_room].discard(client_sock)
     clients[client_sock]["room"] = None
     client_sock.send(b"[+] Left the room.")
+    sender = clients[client_sock]["name"]
+    for member in rooms[current_room]:
+        if (
+            member != client_sock
+            and clients[member]["in_room_mode"]
+            and clients[member]["room"] == current_room
+        ):
+            member.send(f"[Info] '{sender}' left room '{current_room}'.".encode())
+
+
+def rooms_show(client_sock):
+    if rooms == {}:
+        client_sock.send(b"No Room is created Yet")
+        return
+
+    rooms_clients = list(rooms.keys())
+    client_sock.send("\n".join(rooms_clients).encode())
 
 
 def send_room_message(client_sock, message):
@@ -216,6 +243,9 @@ def room_handler(client_sock, data):
             return
         join_room(client_sock, args[0])
 
+    elif cmd == "/rooms":
+        rooms_show(client_sock)
+
     elif cmd == "/help":
         handle_help_room(client_sock)
 
@@ -271,6 +301,17 @@ def broadcast_global(sender_sock, message):
 
     sender_name = clients[sender_sock]["name"]
     for client in clients:
+        if (
+            client != sender_sock
+            and clients[client]["in_room_mode"]
+            and clients[client]["room"]
+        ):
+            sender_sock.send(
+                f"[!] User '{clients[client]['name']}' is currently in room '{
+                    clients[client]['room']
+                }'. They won't see global messages.".encode()
+            )
+            continue
         if client != sender_sock and not clients[client]["in_room_mode"]:
             client.send(f"{sender_name}: {message}".encode())
 

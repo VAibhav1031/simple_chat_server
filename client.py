@@ -83,8 +83,8 @@ end_time = None
 def send_msg(sock, msg):
     try:
         sock.send(msg.encode())
-    except:
-        pass
+    except Exception as e:
+        print(f"[Error]: {e}")
 
 
 def auth_setup(sock):
@@ -130,16 +130,17 @@ def receive_messages(sock):
                 print("\n[!]💣 Server disconnected.")
                 exit_flag.set()
                 break
-
-            msssg = data.decode()
+            try:
+                msssg = data.decode()
+            except UnicodeDecodeError:
+                print("\n[!] Received non-text data — ignoring.")
+                continue
             if msssg.startswith("Pong"):
                 end_time = time.time()
                 sys.stdout.write("\r" + " " * 100 + "\r")
                 print(f"\033[38;5;83m{msssg}\033[0m")
-                print(
-                    f"\033[38;5;83m[Server RTT]: {((end_time - start_time) * 100):.2f} ms\033[0m"
-                )
 
+                print(f"\033[38;5;83m[Server RTT]: {((end_time-start_time) * 1000):.2f}ms\033[0m")
                 continue
 
             if msssg.startswith("__new_username__"):
@@ -152,14 +153,20 @@ def receive_messages(sock):
                 exit_flag.set()
                 break
             sys.stdout.write("\r" + " " * 100 + "\r")
-            print(f"\033[38;5;46m{data.decode()}\033[0m")
+            user, sep, msg = data.decode().partition(":")
+            if sep:
+                print(f"\033[38;5;202m{user}\033[0m : \033[38;5;46m{msg}\033[0m")
+            else:
+                print(f"\033[0m\033[38;5;46m{data.decode().strip()}\033[0m")
+
             if msssg.startswith("[-]"):
                 auth_needed_flag.set()
                 exit_flag.set()
                 break
 
-            sys.stdout.write(f"\033[38;5;51m{user_name_holder[0]}\033[0m :")
-            sys.stdout.flush()
+            if user_name_holder[0]:
+                sys.stdout.write(f"\033[38;5;51m{user_name_holder[0]}\033[0m :")
+                sys.stdout.flush()
 
         except (ConnectionResetError, OSError) as e:
             print(f"\n[!] Connection error: {e}")
