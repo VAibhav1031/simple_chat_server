@@ -96,7 +96,7 @@ def handle_help_room(client_sock):
     /room_create <name> - Create a new room
     /room_join <name>   - Join an existing room
     /leave_current_room - Leave the room you are currently in (stay in room mode)
-    /room_help          - Show this help menu
+    /help               - Show this help menu
 
     Notes:
     - While in room mode, your messages go only to members of your current room.
@@ -144,7 +144,11 @@ def send_room_message(client_sock, message):
 
     sender = clients[client_sock]["name"]
     for member in rooms[room_name]:
-        if member != client_sock:
+        if (
+            member != client_sock
+            and clients[member]["in_room_mode"]
+            and clients[member]["room"] == room_name
+        ):
             member.send(f"[{room_name}] {sender}: {message}".encode())
 
 
@@ -212,7 +216,7 @@ def room_handler(client_sock, data):
             return
         join_room(client_sock, args[0])
 
-    elif cmd == "/room_help":
+    elif cmd == "/help":
         handle_help_room(client_sock)
 
     else:
@@ -274,6 +278,7 @@ def broadcast_global(sender_sock, message):
 def disconnect_client(conn):
     print(f"\nClient {clients[conn]} is disconnected")
     sel.unregister(conn)
+    leave_current_room(conn)
     conn.close()
     del clients[conn]
 
