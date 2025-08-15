@@ -1,7 +1,7 @@
-# SIMPLE CHAT SERVER
+# Multi-Room Chat Server with Authentication 
 ![Screenshot of my project's main screen](repo_essentials/show.png)
 ---
--  It is a simple chat server, using Sockets 
+-  It is a Mutli-Room chat server, using Sockets 
 -  Pretty good and clean , can be connect through internet  or locally 
 -  Server is designed to handle good amount of clients with good Security(still improving)
 -  Tried to for better good simple chat with friends or any :::))) other ...
@@ -15,7 +15,7 @@
 
   ### Every update TO-DO:
   - Optimizing the flow, removing each and every bug .
-  - Creating Test of it , on various level (so that it could be a simple good chat server)
+  - Creating Test of it , on various level (so that it could be a  good chat server)
 
   ### Current feature and required:
   - Adding Room Mode(Pub/pvt) and passwd entry exit options
